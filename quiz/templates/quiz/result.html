@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>測驗結果</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],   
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'noscript',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root {
@@ -15,6 +29,7 @@
             --transition: all 0.2s ease-in-out;
             --danger-color: #ef4444;        
             --success-color: #22c55e;       
+            --warning-color: #d97706;  
         }
 
         body { 
@@ -48,7 +63,6 @@
             font-weight: 700;
         }
 
-        /* 修改後的結果大外包盒 */
         .result-box { 
             background-color: #f8fafc;
             margin: 30px auto; 
@@ -65,7 +79,6 @@
             font-weight: 500;
         }
 
-        /* 調整分數與時間的間隔 */
         .result-box .divider {
             height: 1px;
             background-color: var(--border-color);
@@ -79,7 +92,6 @@
             line-height: 1;
         }
 
-        /* 時間數字顯示樣式 */
         .time-count {
             font-size: 34px;
             color: #475569;
@@ -189,7 +201,6 @@
 
         .monospace-text {
             font-family: "Fira Code", Consolas, Monaco, "Courier New", monospace; 
-            white-space: pre-wrap;
             font-size: 0.95rem;
             color: #2d3748;
             line-height: 1.6;
@@ -199,14 +210,36 @@
         .ans-feedback {
             font-size: 1rem;
             line-height: 1.8;
+            margin-bottom: 5px;
         }
 
         .user-ans-wrong { color: var(--danger-color); font-weight: 600; }
         .user-ans-correct { color: var(--success-color); font-weight: 600; }
         .correct-ans { color: var(--success-color); font-weight: 600; }
+
+        
+        .explanation-box {
+            margin-top: 15px;
+            padding: 16px 20px;
+            background-color: #fffbeb; 
+            border-left: 4px solid var(--warning-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #78350f;
+            line-height: 1.6;
+        }
+
+        .explanation-header {
+            font-weight: 700;
+            color: var(--warning-color);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
     </style>
 </head>
-<body>
+<body class="tex2jax_process"> 
     <div class="container">
         <h1>測驗結束</h1>
         
@@ -228,7 +261,7 @@
         
         <div class="btn-group">
             <button type="button" class="btn btn-primary" onclick="toggleReview()">檢視詳解 / 答案</button>
-            <a href="{% url 'quiz_home' %}" class="btn btn-secondary">再測驗一次</a>
+            <a href="{% url 'index' %}" class="btn btn-secondary">再測驗一次</a>
         </div>
     </div>
 
@@ -247,7 +280,7 @@
                 </div>
                 
                 <div class="content-box">
-                    <pre class="monospace-text">{{ res.content }}</pre>
+                    <div class="monospace-text" style="white-space: pre-line;">{{ res.content|safe }}</div>
                 </div>
                 
                 <div class="ans-feedback">
@@ -258,6 +291,13 @@
                     </div>
                     <div>正確答案：<span class="correct-ans">{{ res.correct_answer }}</span></div>
                 </div>
+
+                {% if res.explanation %}
+                    <div class="explanation-box">
+                        <div class="explanation-header">💡 觀念解析：</div>
+                        <div style="white-space: pre-line;">{{ res.explanation }}</div>
+                    </div>
+                {% endif %}
             </div>
         {% endfor %}
     </div>

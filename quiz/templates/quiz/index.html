@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料結構測驗 - 會員與排行榜系統</title>
+    <style>
+        :root {
+            --primary-color: #526fff;       
+            --bg-color: #eef2ff;            
+            --text-main: #1e293b;           
+            --border-color: #e2e8f0;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 12px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            box-sizing: border-box;
+        }
+        .user-status { font-weight: 500; font-size: 0.95rem; }
+        .auth-link { color: var(--primary-color); text-decoration: none; font-weight: 600; margin-left: 10px;}
+        .auth-link:hover { text-decoration: underline; }
+
+        .start-box {
+            width: 100%;
+            max-width: 650px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(82, 111, 255, 0.08);
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 { margin-bottom: 30px; font-size: 1.8rem; }
+        
+        .status-alert { padding: 14px 16px; border-radius: 10px; font-size: 0.95rem; margin-bottom: 30px; text-align: left; }
+        .status-wrong { background-color: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; }
+        .status-clear { background-color: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+        .form-group { margin-bottom: 30px; text-align: left; }
+        label { font-weight: 600; display: block; margin-bottom: 10px; }
+        select { width: 100%; padding: 12px; font-size: 1rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; }
+        .start-btn {
+            display: block; width: 100%; padding: 14px; font-size: 16px; font-weight: 600; color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35); margin-bottom: 35px;
+        }
+        .start-btn:hover { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); }
+
+        .dashboard-section { border-top: 2px dashed #f1f5f9; padding-top: 25px; margin-top: 25px; text-align: left; }
+        .section-title { font-size: 1.15rem; font-weight: 700; color: #334155; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; }
+        
+        .tab-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn {
+            padding: 8px 16px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border-color);
+            background: #f8fafc; cursor: pointer; color: #64748b; transition: all 0.2s;
+        }
+        .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .leaderboard-content { display: none; }
+        .leaderboard-content.active { display: block; }
+
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .styled-table th { background-color: #f8fafc; color: #64748b; font-weight: 600; padding: 10px; border-bottom: 2px solid #edf2f7; text-align: center; }
+        .styled-table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #475569; }
+        
+        .badge-rank { display: inline-block; width: 22px; height: 22px; line-height: 22px; border-radius: 50%; font-weight: bold; font-size: 0.8rem; color: white; background: #94a3b8; }
+        .rank-1 { background: #fbbf24; } .rank-2 { background: #cbd5e1; } .rank-3 { background: #b45309; }
+
+        .badge-perfect { background-color: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .badge-normal { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; }
+        .no-data { color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 15px 0; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="user-status">
+            {% if user.is_authenticated %}
+                👤 目前登入：<strong>{{ user.username }}</strong>
+            {% else %}
+                👤 您尚未登入，紀錄將無法存入排行榜。
+            {% endif %}
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="auth-link" style="color: #ef4444;">登出系統</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="auth-link">帳號登入</a>
+                <a href="{% url 'register' %}" class="auth-link" style="color:#10b981;">註冊新帳號</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="start-box">
+        <h1>⏱️ 時間複雜度隨機測驗</h1>
+        
+        {% if wrong_count > 0 %}
+            <div class="status-alert status-wrong">
+                ⚠️ <strong>偵測到單次錯題：</strong> 您上次有 {{ wrong_count }} 題未答對，本次將優先出現。
+            </div>
+        {% else %}
+            <div class="status-alert status-clear">
+                🎉 <strong>目前進度良好！</strong> 系統內無上場錯題紀錄，由全題庫隨機抽題。
+            </div>
+        {% endif %}
+        
+        <form action="{% url 'quiz_home' %}" method="GET">
+            <div class="form-group">
+                <label for="num_questions">請選擇本次測驗題數：</label>
+                <select name="num" id="num_questions" required>
+                    <option value="" disabled selected>-- 請選擇題數 --</option>
+                    <option value="5">5 題 (快速複習)</option>
+                    <option value="10">10 題 (標準核心)</option>
+                    <option value="15">15 題 (完整挑戰)</option>
+                </select>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <button type="submit" class="start-btn">開始測驗</button>
+            {% else %}
+                <button type="button" class="start-btn" style="background: #94a3b8; cursor: not-allowed;" onclick="alert('請先在右上方登入或註冊帳號，才能開始測驗與上榜喔！')">請先登入以開始測驗</button>
+            {% endif %}
+        </form>
+
+        <div class="dashboard-section">
+            <div class="section-title">🏆 資料結構排行榜</div>
+            
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="switchTab('tab5')">5 題組</button>
+                <button class="tab-btn" onclick="switchTab('tab10')">10 題組</button>
+                <button class="tab-btn" onclick="switchTab('tab15')">15 題組</button>
+            </div>
+
+            <div id="tab5" class="leaderboard-content active">
+                {% if leaderboard_5 %}
+                    <table class="styled-table">
+                        <thead><tr><th>名次</th><th>玩家帳號</th><th>得分率</th><th>作答時間</th></tr></thead>
+                        <tbody>
+                            {% for r in leaderboard_5 %}
+                            <tr>
+                                <td><span class="badge-rank rank-{{ forloop.counter }}">{{ forloop.counter }}</span></td>
+                                <td style="font-weight:600;">{{ r.user.username }}</td>
+                                <td><span class="badge-perfect">{{ r.score_percent }}%</span></td>
+                                <td>{{ r.duration }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %} <div class="no-data">5 題組目前空空如也，快來搶佔沙發！</div> {% endif %}
+            </div>
+
+            <div id="tab10" class="leaderboard-content">
+                {% if leaderboard_10 %}
+                    <table class="styled-table">
+                        <thead><tr><th>名次</th><th>玩家帳號</th><th>得分率</th><th>作答時間</th></tr></thead>
+                        <tbody>
+                            {% for r in leaderboard_10 %}
+                            <tr>
+                                <td><span class="badge-rank rank-{{ forloop.counter }}">{{ forloop.counter }}</span></td>
+                                <td style="font-weight:600;">{{ r.user.username }}</td>
+                                <td><span class="badge-normal">{{ r.score_percent }}%</span></td>
+                                <td>{{ r.duration }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %} <div class="no-data">10 題組目前暫無紀錄。</div> {% endif %}
+            </div>
+
+            <div id="tab15" class="leaderboard-content">
+                {% if leaderboard_15 %}
+                    <table class="styled-table">
+                        <thead><tr><th>名次</th><th>玩家帳號</th><th>得分率</th><th>作答時間</th></tr></thead>
+                        <tbody>
+                            {% for r in leaderboard_15 %}
+                            <tr>
+                                <td><span class="badge-rank rank-{{ forloop.counter }}">{{ forloop.counter }}</span></td>
+                                <td style="font-weight:600;">{{ r.user.username }}</td>
+                                <td><span class="badge-normal">{{ r.score_percent }}%</span></td>
+                                <td>{{ r.duration }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %} <div class="no-data">15 題組目前暫無紀錄。</div> {% endif %}
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="dashboard-section">
+            <div class="section-title">📊 您的個人作答歷史追蹤</div>
+            {% if my_history %}
+                <table class="styled-table">
+                    <thead><tr><th>測驗時間</th><th>總題數</th><th>答對數</th><th>得分率</th><th>花費時間</th></tr></thead>
+                    <tbody>
+                        {% for log in my_history %}
+                            <tr>
+                                <td style="font-size: 0.8rem; color: #94a3b8;">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>{{ log.total_questions }} 題</td>
+                                <td style="color:#10b981; font-weight:600;">{{ log.correct_count }} 題</td>
+                                <td>{{ log.score_percent }}%</td>
+                                <td>{{ log.duration }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-data">您尚未在此帳號留下作答紀錄。</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+           
+            document.querySelectorAll('.leaderboard-content').forEach(el => el.classList.remove('active'));
+            
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>

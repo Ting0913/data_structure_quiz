@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8"><title>註冊新帳號</title>
+    <style>
+        body { font-family: sans-serif; background: #eef2ff; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 320px; }
+        input { width: 100%; padding: 10px; margin: 10px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;}
+        button { width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;}
+        .link { text-align:center; margin-top:15px; font-size:0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📝 註冊新帳號</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <label>自訂使用者帳號：</label><input type="text" name="username" placeholder="自訂登入帳號" required>
+            <label>設定密碼：</label><input type="password" name="password" placeholder="設定登入密碼" required>
+            <button type="submit">完成並建立帳號</button>
+        </form>
+        <div class="link"><a href="{% url 'login' %}" style="color:#526fff; text-decoration:none;">已有帳號？返回登入</a></div>
+    </div>
+</body>
+</html>

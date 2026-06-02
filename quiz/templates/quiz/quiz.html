@@ -4,7 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資料結構測驗 - 時間複雜度</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],    
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'noscript',
+                processHtmlClass: 'tex2jax_process',
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'code', 'annotation', 'annotation-xml']
+            }
+        };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root {
@@ -92,9 +106,10 @@
             margin-bottom: 25px;
         }
 
-        .monospace-text {
+       
+        .monospace-text-div {
             font-family: "Fira Code", Consolas, Monaco, "Courier New", monospace; 
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* 完美保留後台輸入的換行與空格 */
             font-size: 1rem;
             color: #2d3748;
             line-height: 1.6;
@@ -182,7 +197,7 @@
         }
     </style>
 </head>
-<body>
+<body class="tex2jax_process">
 
     <div class="container">
         <div class="timer-box" id="timerBox">
@@ -200,13 +215,13 @@
                 <div class="question-number">{{ forloop.counter }}.</div>
                 
                 <div class="question-content-box">
-                    <pre class="monospace-text">{{ q.content }}</pre>
+                    <div class="monospace-text-div">{{ q.content|safe }}</div>
                 </div>
                 
-                {% for choice in q.choices.all %}
+                {% for choice in q.random_choices %}
                 <label class="choice-label">
                     <input type="radio" name="q{{ q.id }}" value="{{ choice.id }}" class="choice-input">
-                    <span>{{ choice.text }}</span>
+                    <span>{{ choice.text|safe }}</span>
                 </label>
                 {% endfor %}
             </div>
@@ -221,12 +236,11 @@
     <script>
         let totalSeconds = 0;
         const timeDisplay = document.getElementById('countdown');
-        const durationInput = document.getElementById('userDuration'); // 抓取隱藏輸入框
+        const durationInput = document.getElementById('userDuration');
 
         setInterval(function() {
             totalSeconds++;
             
-            // 同步更新隱藏輸入框的值
             durationInput.value = totalSeconds;
 
             let minutes = Math.floor(totalSeconds / 60);
