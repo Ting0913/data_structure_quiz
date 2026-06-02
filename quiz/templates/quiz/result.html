@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測驗結果</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #526fff;       
+            --bg-color: #eef2ff;            
+            --text-main: #1e293b;           
+            --border-color: #e2e8f0;
+            --transition: all 0.2s ease-in-out;
+            --danger-color: #ef4444;        
+            --success-color: #22c55e;       
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 85vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            padding: 40px 30px;            
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(82, 111, 255, 0.08);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--text-main);
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /* 修改後的結果大外包盒 */
+        .result-box { 
+            background-color: #f8fafc;
+            margin: 30px auto; 
+            padding: 24px; 
+            width: 280px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 14px; 
+        }
+
+        .result-box p {
+            margin: 0 0 8px 0;
+            font-size: 1.05rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* 調整分數與時間的間隔 */
+        .result-box .divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 20px 0;
+        }
+
+        .count { 
+            font-size: 40px; 
+            color: #475569; 
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        /* 時間數字顯示樣式 */
+        .time-count {
+            font-size: 34px;
+            color: #475569;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .highlight { 
+            color: var(--primary-color); 
+        }
+
+        .desc-text {
+            color: #64748b;
+            font-size: 1rem;
+            margin-bottom: 35px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        }
+
+        .btn-secondary {
+            color: var(--primary-color);
+            background-color: #ffffff;
+            border: 2px solid #c7d2fe;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background-color: #f8fafc;
+            border-color: var(--primary-color);
+        }
+
+        /* 詳解專區樣式 */
+        .review-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+            display: none; 
+        }
+
+        .review-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 20px;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .result-card {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .card-correct { border-left: 5px solid var(--success-color); }
+        .card-wrong { border-left: 5px solid var(--danger-color); }
+
+        .status-number {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .text-correct { color: var(--success-color); }
+        .text-wrong { color: var(--danger-color); }
+
+        .content-box {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .monospace-text {
+            font-family: "Fira Code", Consolas, Monaco, "Courier New", monospace; 
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: #2d3748;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .ans-feedback {
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .user-ans-wrong { color: var(--danger-color); font-weight: 600; }
+        .user-ans-correct { color: var(--success-color); font-weight: 600; }
+        .correct-ans { color: var(--success-color); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>測驗結束</h1>
+        
+        <div class="result-box">
+            <p>答對題數</p>
+            <div class="count">
+                <span class="highlight">{{ correct_count }}</span> / {{ total_questions }}
+            </div>
+
+            <div class="divider"></div>
+
+            <p>總作答時間</p>
+            <div class="time-count">
+                <span class="highlight">{{ duration_time }}</span>
+            </div>
+        </div>
+        
+        <p class="desc-text">你已經完成本次時間複雜度分析測驗！</p>
+        
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary" onclick="toggleReview()">檢視詳解 / 答案</button>
+            <a href="{% url 'quiz_home' %}" class="btn btn-secondary">再測驗一次</a>
+        </div>
+    </div>
+
+    <div class="review-container" id="reviewArea">
+        <div class="review-title">💡 全題型答案與分析</div>
+        
+        {% for res in detailed_results %}
+            <div class="result-card {% if res.is_correct %}card-correct{% else %}card-wrong{% endif %}">
+                <div class="status-number">
+                    第 {{ res.number }} 題 
+                    {% if res.is_correct %}
+                        <span class="text-correct"> (內容正確 ✓)</span>
+                    {% else %}
+                        <span class="text-wrong"> (內容錯誤 ✗)</span>
+                    {% endif %}
+                </div>
+                
+                <div class="content-box">
+                    <pre class="monospace-text">{{ res.content }}</pre>
+                </div>
+                
+                <div class="ans-feedback">
+                    <div>你的答案：
+                        <span class="{% if res.is_correct %}user-ans-correct{% else %}user-ans-wrong{% endif %}">
+                            {{ res.user_answer }}
+                        </span>
+                    </div>
+                    <div>正確答案：<span class="correct-ans">{{ res.correct_answer }}</span></div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleReview() {
+            var reviewArea = document.getElementById('reviewArea');
+            if (reviewArea.style.display === 'block') {
+                reviewArea.style.display = 'none';
+            } else {
+                reviewArea.style.display = 'block';
+                reviewArea.scrollIntoView({ behavior: 'smooth' });
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.typeset();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
