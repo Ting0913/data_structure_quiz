@@ -106,10 +106,9 @@
             margin-bottom: 25px;
         }
 
-       
         .monospace-text-div {
             font-family: "Fira Code", Consolas, Monaco, "Courier New", monospace; 
-            white-space: pre-wrap; /* 完美保留後台輸入的換行與空格 */
+            white-space: pre-wrap;
             font-size: 1rem;
             color: #2d3748;
             line-height: 1.6;
@@ -221,7 +220,17 @@
                 {% for choice in q.random_choices %}
                 <label class="choice-label">
                     <input type="radio" name="q{{ q.id }}" value="{{ choice.id }}" class="choice-input">
-                    <span>{{ choice.text|safe }}</span>
+                    <span>
+                        <strong style="margin-right: 5px;">
+                            {% if forloop.counter == 1 %}(A)
+                            {% elif forloop.counter == 2 %}(B)
+                            {% elif forloop.counter == 3 %}(C)
+                            {% elif forloop.counter == 4 %}(D)
+                            {% elif forloop.counter == 5 %}(E)
+                            {% endif %}
+                        </strong>
+                        {{ choice.text|slice:"4:"|safe }}
+                    </span>
                 </label>
                 {% endfor %}
             </div>
