@@ -19,9 +19,6 @@
 
 **建立並啟動虛擬環境**：
    ```bash
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-
-# 3. 啟動 Django 測試伺服器：
+#啟動 Django 測試伺服器：
 python manage.py runserver
    
