@@ -1,10 +1,10 @@
 import random
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required  
 from django.contrib import messages 
-from .models import Question, Choice, QuizRecord
+from .models import Question, Choice, QuizRecord, QuizAnswer  # 💡 確保匯入了新建立的 QuizAnswer
 from datetime import datetime
 
 
@@ -83,7 +83,7 @@ def index(request):
 
 @login_required(login_url='login') 
 def quiz_home(request):
-    """ 測驗題目頁面（代碼不變） """
+    """ 測驗題目頁面 """
     try:
         num_questions_to_get = int(request.GET.get('num', 15))
     except (ValueError, TypeError):
@@ -114,7 +114,7 @@ def quiz_home(request):
 
 @login_required(login_url='login')
 def calculate_score(request):
-    """ 交卷批改分數頁面（💡 改動：支援加入題目解析） """
+    """ 交卷批改分數頁面（💡 已整合：建立紀錄時同步儲存每題的 QuizAnswer） """
     if request.method == 'POST':
         correct_count = 0
         detailed_results = [] 
@@ -164,6 +164,7 @@ def calculate_score(request):
                 current_wrong_set.add(q.id)
             
             detailed_results.append({
+                'question_obj': q,  # 💡 保留題目物件方便稍後建立 QuizAnswer 關聯
                 'number': index,
                 'content': q.content,
                 'user_answer': user_choice_text,
@@ -176,13 +177,23 @@ def calculate_score(request):
         
         score_percent = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
         
-        QuizRecord.objects.create(
+        # 1. 先建立該次測驗的大紀錄主表物件
+        record = QuizRecord.objects.create(
             user=request.user, 
             total_questions=total_questions,
             correct_count=correct_count,
             score_percent=score_percent,
             duration=duration_string
         )
+        
+        # 2. 💡 關鍵新增：用迴圈將該次測驗的所有「題目作答細節」全部存進 QuizAnswer 資料表
+        for res in detailed_results:
+            QuizAnswer.objects.create(
+                quiz_record=record,
+                question=res['question_obj'],
+                user_choice_text=res['user_answer'],
+                is_correct=res['is_correct']
+            )
         
         context = {
             'correct_count': correct_count,
@@ -193,3 +204,29 @@ def calculate_score(request):
         return render(request, 'quiz/result.html', context)
         
     return redirect('index')
+
+
+# --- 以下為新增功能，不影響上方原有邏輯 ---
+
+@login_required(login_url='login')
+def mistake_book(request):
+    """ 📚 錯題本功能：撈出目前 Session 中記錄的所有錯題 """
+    wrong_ids = request.session.get('wrong_question_ids', [])
+    mistakes = Question.objects.filter(id__in=wrong_ids)
+    return render(request, 'quiz/mistake_book.html', {
+        'mistakes': mistakes,
+        'wrong_count': len(wrong_ids)
+    })
+
+
+@login_required(login_url='login')
+def record_detail(request, record_id):
+    """ 📝 歷史紀錄詳情：點開特定一次測驗，回溯當時考了哪些題、錯了哪幾題 """
+    # 確保使用者只能存取屬於自己的測驗紀錄
+    record = get_object_or_404(QuizRecord, id=record_id, user=request.user)
+    # 利用 related_name='answers' 撈出這筆紀錄底下的所有答題詳情
+    details = record.answers.all()
+    return render(request, 'quiz/record_detail.html', {
+        'record': record,
+        'details': details
+    })

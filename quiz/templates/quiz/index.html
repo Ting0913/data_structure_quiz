@@ -88,6 +88,21 @@
         .badge-perfect { background-color: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         .badge-normal { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; }
         .no-data { color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 15px 0; font-style: italic; }
+
+        /* 💡 詳情按鈕樣式 */
+        .btn-detail {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .btn-detail:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -207,18 +222,22 @@
 
         {% if user.is_authenticated %}
         <div class="dashboard-section">
-            <div class="section-title">📊 您的個人作答歷史追蹤</div>
+            <div class="section-title">
+                <span>📊 您的個人作答歷史追蹤</span>
+            </div>
+
             {% if my_history %}
                 <table class="styled-table">
-                    <thead><tr><th>測驗時間</th><th>總題數</th><th>答對數</th><th>得分率</th><th>花費時間</th></tr></thead>
+                    <thead><tr><th>測驗時間</th><th>得分率</th><th>花費時間</th><th>回顧</th></tr></thead>
                     <tbody>
                         {% for log in my_history %}
                             <tr>
-                                <td style="font-size: 0.8rem; color: #94a3b8;">{{ log.created_at|date:"Y-m-d H:i" }}</td>
-                                <td>{{ log.total_questions }} 題</td>
-                                <td style="color:#10b981; font-weight:600;">{{ log.correct_count }} 題</td>
-                                <td>{{ log.score_percent }}%</td>
+                                <td style="font-size: 0.8rem; color: #94a3b8;">{{ log.created_at|date:"m-d H:i" }}</td>
+                                <td style="font-weight:bold;">{{ log.score_percent }}%</td>
                                 <td>{{ log.duration }}</td>
+                                <td>
+                                    <a href="{% url 'record_detail' log.id %}" class="btn-detail">🔍 詳情</a>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -233,11 +252,8 @@
 
     <script>
         function switchTab(tabId) {
-           
             document.querySelectorAll('.leaderboard-content').forEach(el => el.classList.remove('active'));
-            
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
         }

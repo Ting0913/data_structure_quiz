@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測驗詳情回顧 - 答題紀錄</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-main: #1e293b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --border-color: #e2e8f0;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        .score-pass { background-color: #d1fae5; color: #065f46; }
+        .score-fail { background-color: #fee2e2; color: #991b1b; }
+
+        .question-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-correct { border-left: 6px solid var(--success-color); }
+        .card-wrong { border-left: 6px solid var(--danger-color); }
+
+        .status-tag {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .status-correct { color: var(--success-color); }
+        .status-wrong { color: var(--danger-color); }
+
+        .question-text { 
+            font-weight: 700; 
+            font-size: 1.1rem;
+            margin-bottom: 15px; 
+            padding-right: 60px;
+            line-height: 1.6; 
+        }
+        .answer-info {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .user-choice { background-color: #f1f5f9; border: 1px solid #cbd5e1; }
+        .correct-choice { background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; }
+
+        .explanation-box {
+            background-color: #f8fafc;
+            border-top: 1px dashed var(--border-color);
+            margin-top: 15px;
+            padding-top: 15px;
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .back-btn {
+            display: block; width: 100%; padding: 14px; font-size: 16px; font-weight: 600; color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 50px; cursor: pointer;
+            text-align: center; text-decoration: none; box-sizing: border-box; margin-top: 30px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 style="margin:0 0 5px 0;">📊 測驗結果詳情回顧</h1>
+            <p style="color: #64748b; margin: 5px 0;">答題時間：{{ record.created_at|date:"Y-m-d H:i:s" }}</p>
+            <p style="color: #64748b; margin: 5px 0;">測驗花費時間：{{ record.duration_string }}</p>
+            
+            <div class="score-badge {% if record.score_percent >= 60 %}score-pass{% else %}score-fail{% endif %}">
+                得分率：{{ record.score_percent }}% (對了 {{ record.correct_count }} 題 / 共 {{ record.total_questions }} 題)
+            </div>
+        </div>
+
+        <div class="questions-list">
+            {% for detail in details %}
+            <div class="question-card {% if detail.is_correct %}card-correct{% else %}card-wrong{% endif %}">
+                
+                <div class="status-tag {% if detail.is_correct %}status-correct{% else %}status-wrong{% endif %}">
+                    {% if detail.is_correct %}● 正確{% else %}✕ 錯誤{% endif %}
+                </div>
+
+                <div class="question-text">
+                    第 {{ forloop.counter }} 題：{{ detail.question.content }}
+                </div>
+
+                <div class="answer-info user-choice">
+                    <strong>你的回答：</strong> {{ detail.user_choice_text }}
+                </div>
+
+                {% if not detail.is_correct %}
+                <div class="answer-info correct-choice">
+                    <strong>正確答案：</strong> 
+                    {% for choice in detail.question.choice_set.all %}
+                        {% if choice.is_correct %}{{ choice.text }}{% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if detail.question.explanation %}
+                <div class="explanation-box">
+                    <strong>💡 觀念解析：</strong><br>
+                    <div style="margin-top: 5px;">{{ detail.question.explanation }}</div>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'index' %}" class="back-btn">返回首頁</a>
+    </div>
+
+</body>
+</html>
