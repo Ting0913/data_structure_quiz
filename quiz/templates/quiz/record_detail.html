@@ -110,7 +110,6 @@
         <div class="header">
             <h1 style="margin:0 0 5px 0;">📊 測驗結果詳情回顧</h1>
             <p style="color: #64748b; margin: 5px 0;">答題時間：{{ record.created_at|date:"Y-m-d H:i:s" }}</p>
-            <p style="color: #64748b; margin: 5px 0;">測驗花費時間：{{ record.duration_string }}</p>
             
             <div class="score-badge {% if record.score_percent >= 60 %}score-pass{% else %}score-fail{% endif %}">
                 得分率：{{ record.score_percent }}% (對了 {{ record.correct_count }} 題 / 共 {{ record.total_questions }} 題)
@@ -126,18 +125,21 @@
                 </div>
 
                 <div class="question-text">
-                    第 {{ forloop.counter }} 題：{{ detail.question.content }}
+                    第 {{ forloop.counter }} 題：{{ detail.question.content|safe }}
                 </div>
 
                 <div class="answer-info user-choice">
-                    <strong>你的回答：</strong> {{ detail.user_choice_text }}
+                    <strong>你的回答：</strong> {{ detail.user_choice_text|slice:"4:"|safe }}
                 </div>
 
                 {% if not detail.is_correct %}
                 <div class="answer-info correct-choice">
                     <strong>正確答案：</strong> 
-                    {% for choice in detail.question.choice_set.all %}
-                        {% if choice.is_correct %}{{ choice.text }}{% endif %}
+                    {# 這裡直接用你的 related_name 'choices' 即可 #}
+                    {% for choice in detail.question.choices.all %}
+                        {% if choice.is_correct %}
+                            {{ choice.text|slice:"4:"|safe }}
+                        {% endif %}
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -145,7 +147,7 @@
                 {% if detail.question.explanation %}
                 <div class="explanation-box">
                     <strong>💡 觀念解析：</strong><br>
-                    <div style="margin-top: 5px;">{{ detail.question.explanation }}</div>
+                    <div style="margin-top: 5px;">{{ detail.question.explanation|safe }}</div>
                 </div>
                 {% endif %}
 
