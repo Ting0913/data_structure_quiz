@@ -21,4 +21,8 @@
    ```bash
 #啟動 Django 測試伺服器：
 python manage.py runserver
+
+#啟動後端資料庫
+http://127.0.0.1:8000/admin
+
    
