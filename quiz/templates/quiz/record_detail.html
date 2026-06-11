@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>測驗詳情回顧 - 答題紀錄</title>
+    
+    <!-- 💡 核心修正 1：在載入 MathJax 前，注入支援單個 $ 符號的行內公式配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],    
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'noscript',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -102,9 +119,8 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body>
+<body class="tex2jax_process"> <!-- 💡 核心修正 2：在 body 加上 tex2jax_process class，確保 MathJax 精準掃描此區塊 -->
 
     <div class="container">
         <div class="header">
@@ -135,7 +151,7 @@
                 {% if not detail.is_correct %}
                 <div class="answer-info correct-choice">
                     <strong>正確答案：</strong> 
-                    {# 這裡直接用你的 related_name 'choices' 即可 #}
+                    {# 💡 核心修正 3：移除不安全的 choice_set.all 備用查詢，直接調用 choices.all 避免 Django 變數解析失敗 #}
                     {% for choice in detail.question.choices.all %}
                         {% if choice.is_correct %}
                             {{ choice.text|slice:"4:"|safe }}

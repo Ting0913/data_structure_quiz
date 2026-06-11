@@ -25,4 +25,8 @@ python manage.py runserver
 #啟動後端資料庫
 http://127.0.0.1:8000/admin
 
+#開啟測驗網頁
+http://127.0.0.1:8000
+
+
    
